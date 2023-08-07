@@ -39,18 +39,20 @@ module Effectful.DBus.Notify
   , Capability (..)
   ) where
 
-import DBus
-import DBus.Client hiding (throwError)
+import           Data.Fixed
+import           Data.Int
+import           Data.Maybe
+import           Data.Time
+import           DBus
+import           DBus.Client                    hiding (throwError)
 
-import Data.Maybe
+import           Effectful
+import           Effectful.Dispatch.Static
+import           Effectful.Error.Dynamic
+import           Effectful.Internal.Utils
 
-import Effectful
-import Effectful.Dispatch.Static
-import Effectful.Error.Dynamic
-import Effectful.Internal.Utils
-
-import Effectful.DBus.Notify.Internal
-import Effectful.DBus.Notify.Action
+import           Effectful.DBus.Notify.Action
+import           Effectful.DBus.Notify.Internal
 
 -- |A 'Note' with default values.
 -- All fields are blank except for 'expiry', which is 'Dependent'.
@@ -87,14 +89,24 @@ replace (Notification nid) (Note {..}) = do
       callNotificationMethod client "Notify" args
     extractId mr
   unsafeEff_ $ removeActionHandlers handlers notification
-  addActionHandlers notification actions
+  ctime <- unsafeEff_ $ getCurrentTime
+  let
+    expiration :: Maybe UTCTime
+    expiration = flip addUTCTime ctime <$> timeout
+  addActionHandlers notification expiration actions
   return notification
   where
+    milliToPico :: Int32 -> Pico
+    milliToPico millis =
+      toEnum $ fromIntegral millis * 10^(9 :: Integer)
+    timeout = secondsToNominalDiffTime <$> case expiry of
+      Milliseconds millis -> Just $ milliToPico millis
+      _                   -> Nothing
     extractId mr =
       case methodReturnBody mr of
         [] -> throwError NoId
         h:_ -> case fromVariant h of
-          Nothing -> throwError IdFormat
+          Nothing   -> throwError IdFormat
           Just nid'-> return $ Notification nid'
     args =
       [ toVariant appName
@@ -119,7 +131,8 @@ getCapabilities = do
 
 -- |Override currently used DBus `Client`.
 withClient :: Notify :> es => Client -> Eff es a -> Eff es a
-withClient client = localStaticRep (\(Notify (_, handlers)) -> Notify (client, handlers))
+withClient client = localStaticRep $
+  \(Notify (_, handlers)) -> Notify (client, handlers)
 
 runNotify
   :: (IOE :> es, Error NotifyError :> es)

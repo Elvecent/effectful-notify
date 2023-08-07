@@ -1,20 +1,20 @@
 module Effectful.DBus.Notify.Internal where
 
-import GHC.Generics
-import Data.Char (toLower, isLower)
-import Data.Int
-import Data.Word
-import Data.Map.Strict qualified as M
-import Data.Foldable
-import Control.Arrow ((&&&), second)
+import                          Control.Arrow                (second, (&&&))
+import                          Data.Char                    (isLower, toLower)
+import                          Data.Foldable
+import                          Data.Int
+import                qualified Data.Map.Strict              as M
+import                          Data.Word
+import                          GHC.Generics
 
-import Effectful
-import Effectful.Dispatch.Static
-import {-# SOURCE #-} Effectful.DBus.Notify.Action
-import Effectful.Internal.Utils
+import                          Effectful
+import {-# SOURCE #-}           Effectful.DBus.Notify.Action
+import                          Effectful.Dispatch.Static
+import                          Effectful.Internal.Utils
 
-import DBus
-import DBus.Client
+import                          DBus
+import                          DBus.Client
 
 type NotifyCtx = (Client, MVar' ActionHandlers)
 
@@ -26,9 +26,9 @@ newtype instance StaticRep Notify = Notify NotifyCtx
 
 -- |Action definition with a handler
 data Action = Action
-  { actionName      :: String
-  , actionLabel     :: String
-  , actionHandler   :: IO ()
+  { actionName    :: String
+  , actionLabel   :: String
+  , actionHandler :: IO ()
   } deriving Generic
 
 instance Show Action where
@@ -51,13 +51,13 @@ newtype Actions = Actions [Action]
 
 -- |Contents of a notification
 data Note = Note
-  { appName :: String
+  { appName  :: String
   , appImage :: Maybe Icon
-  , summary :: String
-  , body :: Maybe Body
-  , actions :: Actions
-  , hints :: [Hint]
-  , expiry :: Timeout
+  , summary  :: String
+  , body     :: Maybe Body
+  , actions  :: Actions
+  , hints    :: [Hint]
+  , expiry   :: Timeout
   } deriving (Eq, Show, Generic)
 
 -- |Message bodies may contain simple markup.
@@ -87,7 +87,7 @@ data Icon = File FilePath | Icon String
   deriving (Eq, Show, Generic)
 
 iconString :: Icon -> String
-iconString (File fp) = "file://" ++ fp
+iconString (File fp)   = "file://" ++ fp
 iconString (Icon name) = name
 
 -- |Urgency of the notification. Notifications may be prioritised by urgency.
@@ -142,15 +142,15 @@ data Capability
 
 readCapability :: String -> Capability
 readCapability s = case s of
-  "actions" -> ActionsCap
-  "body" -> BodyCap
+  "actions"         -> ActionsCap
+  "body"            -> BodyCap
   "body-hyperlinks" -> BodyHyperlinksCap
-  "body-images" -> BodyImagesCap
-  "body-markup" -> BodyMarkupCap
-  "icon-multi" -> IconMultiCap
-  "icon-static" -> IconStaticCap
-  "sound" -> SoundCap
-  s' -> UnknownCap s'
+  "body-images"     -> BodyImagesCap
+  "body-markup"     -> BodyMarkupCap
+  "icon-multi"      -> IconMultiCap
+  "icon-static"     -> IconStaticCap
+  "sound"           -> SoundCap
+  s'                -> UnknownCap s'
 
 nObjectPath :: ObjectPath
 nObjectPath = "/org/freedesktop/Notifications"
@@ -181,7 +181,7 @@ flattenBody (Text s) = concatMap escape s
     escape '>' = "&gt;"
     escape '<' = "&lt;"
     escape '&' = "&amp;"
-    escape x = [x]
+    escape x   = [x]
 flattenBody (Bold b) = "<b>" ++ flattenBody b ++ "</b>"
 flattenBody (Italic b) = "<i>" ++ flattenBody b ++ "</i>"
 flattenBody (Underline b) = "<u>" ++ flattenBody b ++ "</u>"

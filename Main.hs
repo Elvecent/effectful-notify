@@ -1,10 +1,10 @@
 module Main where
 
-import Effectful.DBus.Notify
-import Effectful.Error.Dynamic
-import Effectful
+import           Effectful
+import           Effectful.DBus.Notify
+import           Effectful.Error.Dynamic
 
-import Control.Concurrent (threadDelay)
+import           Control.Concurrent      (threadDelay)
 
 main :: IO ()
 main = do
@@ -32,7 +32,7 @@ main = do
       _ <- getLine
       uninstallActionsHandler client sh
   where
-    appNote = blankNote { appName = "Fibonacci Demonstration" }
+    appNote = blankNote { appName = "Notifications Demonstration" }
     ack = Action "ack" "acknowledge" $ putStrLn "The user has acknowledged."
     ok = Action "ok" "okay" $ putStrLn "The user says okay."
     youToo = Action "youtoo" "you too" $ putStrLn "The user says you too."
