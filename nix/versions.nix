@@ -7,11 +7,6 @@
   
   haskellCompiler = "ghc945";
   
-  haskellOverrides = {        
-    effectful-plugin = {
-      pkg = "effectful-plugin";
-      ver = "1.1.0.1";
-      sha256 = "sha256-Hq8PRRR2w9tZkGfxSYvugnCZl1g/EzXnL+vDwCuRluM=";
-    };
+  haskellOverrides = {
   };
 }

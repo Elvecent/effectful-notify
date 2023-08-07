@@ -1,6 +1,6 @@
 cabal-version:      3.0
-name:               effectful-notify
-version:            0.1.0.0
+name:               notify-effectful
+version:            0.1.1.0
 -- synopsis:
 -- description:
 license:            BSD-2-Clause
@@ -19,17 +19,27 @@ common warnings
 executable test
     main-is:          Main.hs
     build-depends:    base ^>=4.17.0.0
-                    , effectful-notify
+                    , effectful-core
+                    , notify-effectful
     default-language: GHC2021
     
 library
     import:           warnings
     exposed-modules:  Effectful.DBus.Notify
+                    , Effectful.DBus.Notify.Internal
+                    , Effectful.DBus.Notify.Action
     -- other-modules:
-    -- other-extensions:
+    default-extensions: LambdaCase
+                      , DerivingStrategies
+                      , RecordWildCards
+                      , OverloadedStrings
+                      , DataKinds
+                      , TypeFamilies
+    ghc-options:      -freverse-errors
     build-depends:    base ^>=4.17.0.0
                     , effectful
                     , effectful-core
+                    , time
                     , dbus
                     , containers
     hs-source-dirs:   src

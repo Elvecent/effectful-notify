@@ -1,28 +1,35 @@
 module Main where
 
 import Effectful.DBus.Notify
+import Effectful.Error.Dynamic
+import Effectful
 
+import Control.Concurrent (threadDelay)
+
+main :: IO ()
 main = do
   client <- connectSession
   let startNote = appNote { summary = "Starting"
-                          , body = Just $ Text "Calculating fib(40)."
-                          , actions = Actions [ack] }
+                          , body = Just $ Text "Calculating..."
+                          , actions = Actions [ack]
+                          , expiry = Milliseconds 3000 }
   let endNote = appNote { summary = "Finished"
-                        , body = Just . Text . show $ fib40
+                        , body = Just . Text $ "done!"
                         , actions = Actions [ok] }
   let btwNote = appNote { summary = "By the way"
                         , body = Just . Text $ "Have a nice day!"
                         , actions = Actions [youToo, noThanks] }
-  res <- runEff $ runNotify client $ do
-    notify btwNote
+  res <- runEff $ runError @NotifyError $ runNotify client $ do
+    _ <- notify btwNote
     notification <- notify startNote
-    fib40 `seq` replace notification endNote
+    liftIO $ threadDelay 5000000
+    replace notification endNote
   case res of
     Left (cs, e) -> do
       putStrLn $ "error: " <> show e
       print cs
     Right (sh, _) -> do
-      getLine
+      _ <- getLine
       uninstallActionsHandler client sh
   where
     appNote = blankNote { appName = "Fibonacci Demonstration" }
@@ -30,7 +37,3 @@ main = do
     ok = Action "ok" "okay" $ putStrLn "The user says okay."
     youToo = Action "youtoo" "you too" $ putStrLn "The user says you too."
     noThanks = Action "nothx" "no thanks" $ putStrLn "The user says no thanks."
-    fib 0 = 0
-    fib 1 = 1
-    fib n = fib (n-1) + fib (n-2)
-    fib40 = fib 40

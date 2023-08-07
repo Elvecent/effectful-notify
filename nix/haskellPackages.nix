@@ -18,7 +18,11 @@ let
         if    builtins.typeOf v == "set"
            && builtins.hasAttr "isHaskellLibrary" v
            && v.isHaskellLibrary
-        then pkgs.haskell.lib.dontCheck v
+        then
+          with pkgs.haskell.lib;
+          dontCheck (if devMode
+                     then disableLibraryProfiling (disableOptimization v)
+                     else v)
         else v) super;
   };
 in
@@ -31,6 +35,6 @@ haskellPackages.override (old: {
         ) versions.haskellOverrides;
     in with pkgs.haskell.lib;
       new // {
-        effectful-notify = self.callCabal2nix "effectful-notify" ../. {};
+        notify-effectful = self.callCabal2nix "notify-effectful" ../. {};
       });
 })

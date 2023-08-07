@@ -5,7 +5,7 @@ let
 in
 haskellPackages.shellFor {
   packages = p:
-    [ p.effectful-notify
+    [ p.notify-effectful
     ];
   buildInputs = whenDev [
     haskellPackages.stylish-haskell
